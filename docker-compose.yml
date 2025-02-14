@@ -1,29 +1,31 @@
 version: "3.8"
 
 services:
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NUXT_HOST=0.0.0.0
-    volumes:
-      - ./client:/app
-      - /app/node_modules
-    depends_on:
-      - server
-
   server:
     build:
-      context: ./server
+      context: .
       dockerfile: Dockerfile
     ports:
       - "3001:3001"
     volumes:
-      - ./server:/app
-      - /app/node_modules
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - default
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    depends_on:
+      - server
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - default
 
 networks:
   default:

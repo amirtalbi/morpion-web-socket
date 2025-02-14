@@ -18,7 +18,7 @@ const waitingForReplay = ref(false);
 const opponentReady = ref(false);
 
 onMounted(() => {
-  socket.value = io("http://localhost:3001");
+  socket.value = io("http://server:3001/");
 
   socket.value.on("nicknameSet", (name) => {
     nickname.value = name;
