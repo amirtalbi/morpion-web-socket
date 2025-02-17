@@ -18,7 +18,14 @@ const waitingForReplay = ref(false);
 const opponentReady = ref(false);
 
 onMounted(() => {
-  socket.value = io("http://159.89.109.230:3001/");
+  socket.value = io("http://159.89.109.230:3001/", {
+    transports: ['websocket', 'polling'],
+    withCredentials: true,
+    forceNew: true,
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000
+  });
 
   socket.value.on("nicknameSet", (name) => {
     nickname.value = name;
@@ -120,7 +127,7 @@ const leaveRoom = () => {
   showReplayButton.value = true;
   waitingForReplay.value = false;
   opponentReady.value = false;
-  
+
   if (socket.value) {
     socket.value.emit("leaveRoom");
   }
@@ -187,10 +194,10 @@ const requestReplay = () => {
       <div class="grid grid-cols-3 gap-0 mb-4 relative max-w-[300px] mx-auto">
         <div class="absolute w-full h-[2px] bg-gray-800 top-1/3 left-0"></div>
         <div class="absolute w-full h-[2px] bg-gray-800 top-2/3 left-0"></div>
-        
+
         <div class="absolute h-full w-[2px] bg-gray-800 left-1/3 top-0"></div>
         <div class="absolute h-full w-[2px] bg-gray-800 left-2/3 top-0"></div>
-        
+
         <button
           v-for="(cell, index) in board"
           :key="index"
@@ -210,16 +217,16 @@ const requestReplay = () => {
         <p class="text-xl font-bold mb-4">
           {{ winner ? (winner === "draw" ? "Draw!" : "Winner: " + winner) : "Game Over!" }}
         </p>
-        
+
         <div class="space-y-4">
-          <button 
+          <button
             v-if="showReplayButton"
             @click="requestReplay"
             class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full"
           >
             {{ opponentReady ? 'Click to Start New Game' : 'Play Again' }}
           </button>
-          
+
           <p v-if="waitingForReplay" class="text-gray-600 italic">
             Waiting for opponent to accept...
           </p>
@@ -227,8 +234,8 @@ const requestReplay = () => {
           <p v-if="opponentReady && showReplayButton" class="text-green-600 italic">
             Opponent is ready to play again!
           </p>
-          
-          <button 
+
+          <button
             @click="leaveRoom"
             class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full"
           >

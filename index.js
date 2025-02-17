@@ -9,12 +9,55 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
+
+// Configuration CORS plus sécurisée
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://159.89.109.230:3000",
+  "150.13.14.147",
+  "150.13.14.164",
+  "*"
+  // Ajoutez vos autres domaines autorisés ici
+];
+
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",  // Autorise toutes les origines
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   },
+  // Ajout des options de proxy
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
+  proxy: true
+});
+
+// Middleware Express pour les en-têtes de sécurité
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', true);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
 });
 
 const rooms = new Map();
